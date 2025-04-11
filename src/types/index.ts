@@ -24,6 +24,14 @@ export interface Team {
   form: ('W' | 'D' | 'L')[];
   comebacks: number;
   halfTimePerformance: number;
+  homeWins?: number;
+  homeLosses?: number;
+  homeDraws?: number;
+  awayWins?: number;
+  awayLosses?: number;
+  awayDraws?: number;
+  secondHalfGoals?: number;
+  firstHalfGoals?: number;
 }
 
 export interface TeamStatistics {
@@ -39,4 +47,14 @@ export interface TeamStatistics {
   halfTimeLeads: number;
   halfTimeDraws: number;
   halfTimeDeficits: number;
+  homeWins: number;
+  homeDraws: number;
+  homeLosses: number;
+  awayWins: number;
+  awayDraws: number;
+  awayLosses: number;
+  firstHalfGoals: number;
+  secondHalfGoals: number;
+  matchesWonFromTrailing: number;
+  matchesLostFromLeading: number;
 }
