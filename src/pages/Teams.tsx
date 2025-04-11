@@ -138,7 +138,7 @@ const Teams = () => {
                   <SelectValue placeholder="All seasons" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All seasons</SelectItem>
+                  <SelectItem value="all-seasons">All seasons</SelectItem>
                   {AVAILABLE_SEASONS.map((season) => (
                     <SelectItem key={season.id} value={season.id}>
                       {season.name}
