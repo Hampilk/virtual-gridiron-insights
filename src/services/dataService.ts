@@ -159,7 +159,17 @@ export const getTeamStatistics = (teamName: string, matches: Match[]): TeamStati
     pointsFromLosing: 0,
     halfTimeLeads: 0,
     halfTimeDraws: 0,
-    halfTimeDeficits: 0
+    halfTimeDeficits: 0,
+    homeWins: 0,
+    homeDraws: 0,
+    homeLosses: 0,
+    awayWins: 0,
+    awayDraws: 0,
+    awayLosses: 0,
+    firstHalfGoals: 0,
+    secondHalfGoals: 0,
+    matchesWonFromTrailing: 0,
+    matchesLostFromLeading: 0
   };
   
   // Filter matches for the specific team
@@ -180,6 +190,10 @@ export const getTeamStatistics = (teamName: string, matches: Match[]): TeamStati
     stats.goalsFor += teamFullTimeScore;
     stats.goalsAgainst += opponentFullTimeScore;
     
+    // First half and second half goals
+    stats.firstHalfGoals += teamHalfTimeScore;
+    stats.secondHalfGoals += (teamFullTimeScore - teamHalfTimeScore);
+    
     // Clean sheets
     if (opponentFullTimeScore === 0) {
       stats.cleanSheets++;
@@ -188,15 +202,31 @@ export const getTeamStatistics = (teamName: string, matches: Match[]): TeamStati
     // Half-time situation
     if (teamHalfTimeScore > opponentHalfTimeScore) {
       stats.halfTimeLeads++;
+      // Check if lost from leading
+      if (teamFullTimeScore < opponentFullTimeScore) {
+        stats.matchesLostFromLeading++;
+      }
     } else if (teamHalfTimeScore === opponentHalfTimeScore) {
       stats.halfTimeDraws++;
     } else {
       stats.halfTimeDeficits++;
+      // Check if won from trailing
+      if (teamFullTimeScore > opponentFullTimeScore) {
+        stats.matchesWonFromTrailing++;
+      }
     }
     
     // Match result
     if (teamFullTimeScore > opponentFullTimeScore) {
       stats.wins++;
+      
+      // Home or away win
+      if (isHome) {
+        stats.homeWins++;
+      } else {
+        stats.awayWins++;
+      }
+      
       // Comeback win
       if (teamHalfTimeScore < opponentHalfTimeScore) {
         stats.comebacks++;
@@ -204,12 +234,27 @@ export const getTeamStatistics = (teamName: string, matches: Match[]): TeamStati
       }
     } else if (teamFullTimeScore === opponentFullTimeScore) {
       stats.draws++;
+      
+      // Home or away draw
+      if (isHome) {
+        stats.homeDraws++;
+      } else {
+        stats.awayDraws++;
+      }
+      
       // Comeback draw
       if (teamHalfTimeScore < opponentHalfTimeScore) {
         stats.pointsFromLosing += 1;
       }
     } else {
       stats.losses++;
+      
+      // Home or away loss
+      if (isHome) {
+        stats.homeLosses++;
+      } else {
+        stats.awayLosses++;
+      }
     }
   });
   
