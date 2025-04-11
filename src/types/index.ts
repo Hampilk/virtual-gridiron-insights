@@ -4,6 +4,8 @@ export interface Match {
   matchday: number;
   homeTeam: string;
   awayTeam: string;
+  homeTeamId?: string;
+  awayTeamId?: string;
   homeHalfTimeScore: number;
   awayHalfTimeScore: number;
   homeFullTimeScore: number;
@@ -14,6 +16,9 @@ export interface Match {
 export interface Team {
   id: string;
   name: string;
+  logoUrl?: string;
+  weight?: number;
+  league?: string;
   played: number;
   won: number;
   drawn: number;

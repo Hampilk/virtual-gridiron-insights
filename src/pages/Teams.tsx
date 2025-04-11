@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -9,12 +10,13 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { fetchMatchData, generateLeagueTable } from "@/services/dataService";
+import { fetchMatchData, generateLeagueTable, TEAMS, AVAILABLE_SEASONS } from "@/services/dataService";
 import { Match, Team } from "@/types";
 import Layout from "@/components/Layout";
 import { Input } from "@/components/ui/input";
-import { Award, Goal, TrendingUp, BarChart2 } from "lucide-react";
+import { Award, Goal, TrendingUp, BarChart2, Calendar } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Teams = () => {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -23,6 +25,7 @@ const Teams = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
+  const [selectedSeason, setSelectedSeason] = useState<string>("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -30,13 +33,21 @@ const Teams = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const matchData = await fetchMatchData();
+        const matchData = await fetchMatchData(selectedSeason || undefined);
         setMatches(matchData);
         
         if (matchData.length > 0) {
           const tableData = generateLeagueTable(matchData);
           setTeams(tableData);
           setFilteredTeams(tableData);
+        } else {
+          toast({
+            title: "No matches found",
+            description: selectedSeason 
+              ? `No matches found for the selected season.` 
+              : "No matches found. Please check the data source.",
+            variant: "destructive"
+          });
         }
         
         setLoading(false);
@@ -52,7 +63,7 @@ const Teams = () => {
     };
     
     loadData();
-  }, [toast]);
+  }, [toast, selectedSeason]);
 
   useEffect(() => {
     if (searchQuery.trim() === "") {
@@ -81,7 +92,7 @@ const Teams = () => {
 
   const handleCompareClick = () => {
     if (selectedTeams.length === 2) {
-      navigate(`/head-to-head?team1=${selectedTeams[0]}&team2=${selectedTeams[1]}`);
+      navigate(`/head-to-head?team1=${selectedTeams[0]}&team2=${selectedTeams[1]}${selectedSeason ? `&season=${selectedSeason}` : ''}`);
     } else if (selectedTeams.length === 1) {
       toast({
         title: "Select another team",
@@ -97,6 +108,10 @@ const Teams = () => {
     }
   };
 
+  const handleSeasonChange = (value: string) => {
+    setSelectedSeason(value);
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -106,14 +121,32 @@ const Teams = () => {
         </div>
         
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="w-full max-w-md">
-            <Input
-              type="text"
-              placeholder="Search teams..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full"
-            />
+          <div className="w-full flex flex-col sm:flex-row gap-4">
+            <div className="w-full max-w-md">
+              <Input
+                type="text"
+                placeholder="Search teams..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="w-full max-w-xs">
+              <Select value={selectedSeason} onValueChange={handleSeasonChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All seasons" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All seasons</SelectItem>
+                  {AVAILABLE_SEASONS.map((season) => (
+                    <SelectItem key={season.id} value={season.id}>
+                      {season.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           {selectedTeams.length > 0 && (
@@ -139,7 +172,18 @@ const Teams = () => {
             {filteredTeams.map(team => (
               <Card key={team.id} className={`shadow-md hover:shadow-lg transition-shadow duration-300 ${selectedTeams.includes(team.id) ? 'ring-2 ring-football-accent' : ''}`}>
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                  <CardTitle className="text-football-blue">{team.name}</CardTitle>
+                  <div className="flex items-center gap-3">
+                    {team.logoUrl && (
+                      <div className="h-8 w-8 overflow-hidden flex items-center justify-center">
+                        <img 
+                          src={team.logoUrl} 
+                          alt={`${team.name} logo`} 
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                    )}
+                    <CardTitle className="text-football-blue">{team.name}</CardTitle>
+                  </div>
                   <Checkbox 
                     checked={selectedTeams.includes(team.id)}
                     onCheckedChange={() => handleTeamSelect(team.id)}
@@ -190,6 +234,21 @@ const Teams = () => {
                     </div>
                   </div>
                   
+                  <div className="flex items-center justify-center gap-1 mt-2">
+                    {team.form.map((result, index) => (
+                      <span 
+                        key={index}
+                        className={`inline-block w-6 h-6 text-xs font-medium rounded-full flex items-center justify-center ${
+                          result === 'W' ? 'bg-green-500 text-white' :
+                          result === 'D' ? 'bg-amber-400 text-white' :
+                          'bg-red-500 text-white'
+                        }`}
+                      >
+                        {result}
+                      </span>
+                    ))}
+                  </div>
+                  
                   <div className="border-t pt-4">
                     <div className="flex space-x-4">
                       <div className="flex items-center text-sm">
@@ -205,7 +264,7 @@ const Teams = () => {
                 </CardContent>
                 <CardFooter className="flex gap-2">
                   <Link 
-                    to={`/teams/${team.id}`} 
+                    to={`/teams/${team.id}${selectedSeason ? `?season=${selectedSeason}` : ''}`} 
                     className="flex-1 text-center py-2 bg-football-blue text-white rounded-md hover:bg-blue-800 transition-colors"
                   >
                     View Details

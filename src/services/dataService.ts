@@ -1,67 +1,171 @@
+
 import { Match, Team, TeamStatistics } from "../types";
 
-// Function to fetch match data from the CSV
-export const fetchMatchData = async (): Promise<Match[]> => {
+// List of all teams with their proper information
+export const TEAMS = [
+  { id: "arsenal", name: "London Ágyúk", logoUrl: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg", weight: 1.0, league: "premier-league" },
+  { id: "astonvilla", name: "Aston Oroszlán", logoUrl: "https://upload.wikimedia.org/wikipedia/en/9/9f/Aston_Villa_FC_crest.svg", league: "premier-league" },
+  { id: "brentford", name: "Brentford", logoUrl: "https://upload.wikimedia.org/wikipedia/en/2/2a/Brentford_FC_crest.svg", league: "premier-league" },
+  { id: "brighton", name: "Brighton", logoUrl: "https://upload.wikimedia.org/wikipedia/en/f/fd/Brighton_%26_Hove_Albion_logo.svg", league: "premier-league" },
+  { id: "chelsea", name: "Chelsea", logoUrl: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg", weight: 0.9, league: "premier-league" },
+  { id: "palace", name: "Crystal Palace", logoUrl: "https://upload.wikimedia.org/wikipedia/en/0/0c/Crystal_Palace_FC_logo.svg", league: "premier-league" },
+  { id: "everton", name: "Everton", logoUrl: "https://upload.wikimedia.org/wikipedia/en/7/7c/Everton_FC_logo.svg", league: "premier-league" },
+  { id: "fulham", name: "Fulham", logoUrl: "https://upload.wikimedia.org/wikipedia/en/3/3e/Fulham_FC_%28shield%29.svg", league: "premier-league" },
+  { id: "liverpool", name: "Liverpool", logoUrl: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg", weight: 0.9, league: "premier-league" },
+  { id: "mancity", name: "Manchester Kék", logoUrl: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg", weight: 0.8, league: "premier-league" },
+  { id: "newcastle", name: "Newcastle", logoUrl: "https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg", league: "premier-league" },
+  { id: "nottingham", name: "Nottingham", logoUrl: "https://upload.wikimedia.org/wikipedia/en/e/e5/Nottingham_Forest_FC_logo.svg", league: "premier-league" },
+  { id: "tottenham", name: "Tottenham", logoUrl: "https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg", weight: 1.1, league: "premier-league" },
+  { id: "manutd", name: "Vörös Ördögök", logoUrl: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg", weight: 0.9, league: "premier-league" },
+  { id: "westham", name: "West Ham", logoUrl: "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg", league: "premier-league" },
+  { id: "wolves", name: "Wolverhampton", logoUrl: "https://upload.wikimedia.org/wikipedia/en/f/fc/Wolverhampton_Wanderers.svg", league: "premier-league" },
+].sort((a, b) => a.name.localeCompare(b.name));
+
+// Map team names from CSV to team IDs
+const teamNameToId: Record<string, string> = {
+  "London Ágyúk": "arsenal",
+  "Aston Oroszlán": "astonvilla",
+  "Brentford": "brentford",
+  "Brighton": "brighton",
+  "Chelsea": "chelsea",
+  "Crystal Palace": "palace",
+  "Everton": "everton",
+  "Fulham": "fulham",
+  "Liverpool": "liverpool",
+  "Manchester Kék": "mancity",
+  "Newcastle": "newcastle",
+  "Nottingham": "nottingham",
+  "Tottenham": "tottenham",
+  "Vörös Ördögök": "manutd",
+  "West Ham": "westham",
+  "Wolverhampton": "wolves"
+};
+
+// Available season data URLs
+export const AVAILABLE_SEASONS = [
+  { id: "20320", name: "2032/0", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20320.csv" },
+  { id: "20321", name: "2032/1", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20321.csv" },
+  { id: "20322", name: "2032/2", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20322.csv" },
+  { id: "20323", name: "2032/3", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20323.csv" },
+  { id: "20324", name: "2032/4", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20324.csv" },
+  { id: "20325", name: "2032/5", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20325.csv" },
+  { id: "20326", name: "2032/6", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20326.csv" },
+  { id: "20327", name: "2032/7", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20327.csv" },
+  { id: "20328", name: "2032/8", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20328.csv" },
+  { id: "20329", name: "2032/9", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20329.csv" },
+  { id: "20330", name: "2033/0", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20330.csv" },
+  { id: "20331", name: "2033/1", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20331.csv" },
+  { id: "20332", name: "2033/2", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20332.csv" },
+  { id: "20333", name: "2033/3", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20333.csv" },
+  { id: "20334", name: "2033/4", url: "https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20334.csv" }
+];
+
+// Function to fetch match data from a specific season or all seasons
+export const fetchMatchData = async (seasonId?: string): Promise<Match[]> => {
   try {
-    const response = await fetch('https://raw.githubusercontent.com/Winmix713/legamecs/refs/heads/main/20320.csv');
-    const csvText = await response.text();
+    let urls: string[] = [];
     
-    // Parse CSV into match objects
-    const matches: Match[] = [];
-    const lines = csvText.split('\n').filter(line => line.trim().length > 0);
-    
-    // Skip header row if present
-    const startIdx = lines[0].includes('SEASON') ? 1 : 0;
-    
-    for (let i = startIdx; i < lines.length; i++) {
-      const values = lines[i].split(',');
-      
-      if (values.length >= 8) {
-        matches.push({
-          id: i,
-          season: parseInt(values[0], 10),
-          matchday: parseInt(values[1], 10),
-          homeTeam: values[2],
-          awayTeam: values[3],
-          homeHalfTimeScore: parseInt(values[4], 10),
-          awayHalfTimeScore: parseInt(values[5], 10),
-          homeFullTimeScore: parseInt(values[6], 10),
-          awayFullTimeScore: parseInt(values[7], 10)
-        });
+    if (seasonId) {
+      // Find the specific season
+      const season = AVAILABLE_SEASONS.find(s => s.id === seasonId);
+      if (!season) {
+        throw new Error(`Season ${seasonId} not found`);
       }
+      urls = [season.url];
+    } else {
+      // Use all seasons if no specific season is requested
+      urls = AVAILABLE_SEASONS.map(s => s.url);
     }
     
-    return matches;
+    // Fetch and process all required CSV files
+    const matchPromises = urls.map(async (url) => {
+      const response = await fetch(url);
+      const csvText = await response.text();
+      return parseCsvToMatches(csvText, url);
+    });
+    
+    // Combine all match results
+    const allMatches = await Promise.all(matchPromises);
+    return allMatches.flat();
   } catch (error) {
     console.error("Error fetching match data:", error);
     return [];
   }
 };
 
-// Generate league table
+// Helper function to parse CSV data into Match objects
+const parseCsvToMatches = (csvText: string, url: string): Match[] => {
+  const matches: Match[] = [];
+  const lines = csvText.split('\n').filter(line => line.trim().length > 0);
+  
+  // Extract season ID from the URL
+  const seasonId = url.split('/').pop()?.replace('.csv', '') || '0';
+  
+  // Skip header row if present
+  const startIdx = lines[0].includes('date') || lines[0].includes('SEASON') ? 1 : 0;
+  
+  for (let i = startIdx; i < lines.length; i++) {
+    try {
+      const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+      
+      if (values.length >= 7) {
+        const homeTeam = values[1];
+        const awayTeam = values[2];
+        const homeHalfTimeScore = parseInt(values[3], 10);
+        const awayHalfTimeScore = parseInt(values[4], 10);
+        const homeFullTimeScore = parseInt(values[5], 10);
+        const awayFullTimeScore = parseInt(values[6], 10);
+        
+        // Only add match if we recognize both teams
+        if (teamNameToId[homeTeam] && teamNameToId[awayTeam]) {
+          matches.push({
+            id: parseInt(`${seasonId}${i}`, 10),
+            season: parseInt(seasonId, 10),
+            matchday: Math.floor(i / 8) + 1, // Assuming 8 matches per matchday
+            homeTeam: homeTeam,
+            awayTeam: awayTeam,
+            homeTeamId: teamNameToId[homeTeam],
+            awayTeamId: teamNameToId[awayTeam],
+            homeHalfTimeScore,
+            awayHalfTimeScore,
+            homeFullTimeScore,
+            awayFullTimeScore
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Error parsing line ${i} in season ${seasonId}:`, error);
+    }
+  }
+  
+  return matches;
+};
+
+// Generate league table based on match data
 export const generateLeagueTable = (matches: Match[]): Team[] => {
   const teamStats: Record<string, Team> = {};
   
+  // Initialize all teams with their proper IDs and names
+  TEAMS.forEach(team => {
+    teamStats[team.id] = createInitialTeamStats(team.id, team.name, team.logoUrl);
+  });
+  
   // Process each match to calculate team stats
   matches.forEach(match => {
-    // Ensure home team exists in our records
-    if (!teamStats[match.homeTeam]) {
-      teamStats[match.homeTeam] = createInitialTeamStats(match.homeTeam);
-    }
+    const homeTeamId = match.homeTeamId || teamNameToId[match.homeTeam];
+    const awayTeamId = match.awayTeamId || teamNameToId[match.awayTeam];
     
-    // Ensure away team exists in our records
-    if (!teamStats[match.awayTeam]) {
-      teamStats[match.awayTeam] = createInitialTeamStats(match.awayTeam);
-    }
+    // Skip if we can't identify the teams
+    if (!homeTeamId || !awayTeamId) return;
     
     // Update home team stats
-    const homeTeam = teamStats[match.homeTeam];
+    const homeTeam = teamStats[homeTeamId];
     homeTeam.played += 1;
     homeTeam.goalsFor += match.homeFullTimeScore;
     homeTeam.goalsAgainst += match.awayFullTimeScore;
     
     // Update away team stats
-    const awayTeam = teamStats[match.awayTeam];
+    const awayTeam = teamStats[awayTeamId];
     awayTeam.played += 1;
     awayTeam.goalsFor += match.awayFullTimeScore;
     awayTeam.goalsAgainst += match.homeFullTimeScore;
@@ -104,7 +208,7 @@ export const generateLeagueTable = (matches: Match[]): Team[] => {
       awayTeam.form.push('D');
     }
     
-    // Calculate half-time performance (points gained/lost from half-time to full-time)
+    // Calculate half-time performance
     updateHalfTimePerformance(homeTeam, match.homeHalfTimeScore, match.awayHalfTimeScore, 
                              match.homeFullTimeScore, match.awayFullTimeScore, true);
     updateHalfTimePerformance(awayTeam, match.awayHalfTimeScore, match.homeHalfTimeScore, 
@@ -146,7 +250,7 @@ export const generateLeagueTable = (matches: Match[]): Team[] => {
 };
 
 // Get detailed stats for a specific team
-export const getTeamStatistics = (teamName: string, matches: Match[]): TeamStatistics => {
+export const getTeamStatistics = (teamId: string, matches: Match[]): TeamStatistics => {
   const stats: TeamStatistics = {
     matchesPlayed: 0,
     wins: 0,
@@ -172,15 +276,20 @@ export const getTeamStatistics = (teamName: string, matches: Match[]): TeamStati
     matchesLostFromLeading: 0
   };
   
+  // Get team name from ID
+  const teamName = TEAMS.find(t => t.id === teamId)?.name;
+  if (!teamName) return stats;
+  
   // Filter matches for the specific team
   const teamMatches = matches.filter(
-    match => match.homeTeam === teamName || match.awayTeam === teamName
+    match => (match.homeTeamId === teamId || match.homeTeam === teamName) || 
+             (match.awayTeamId === teamId || match.awayTeam === teamName)
   );
   
   teamMatches.forEach(match => {
     stats.matchesPlayed++;
     
-    const isHome = match.homeTeam === teamName;
+    const isHome = (match.homeTeamId === teamId || match.homeTeam === teamName);
     const teamHalfTimeScore = isHome ? match.homeHalfTimeScore : match.awayHalfTimeScore;
     const opponentHalfTimeScore = isHome ? match.awayHalfTimeScore : match.homeHalfTimeScore;
     const teamFullTimeScore = isHome ? match.homeFullTimeScore : match.awayFullTimeScore;
@@ -262,24 +371,41 @@ export const getTeamStatistics = (teamName: string, matches: Match[]): TeamStati
 };
 
 // Get all matches for a specific team
-export const getTeamMatches = (teamName: string, matches: Match[]): Match[] => {
+export const getTeamMatches = (teamId: string, matches: Match[]): Match[] => {
+  const teamName = TEAMS.find(t => t.id === teamId)?.name;
+  if (!teamName) return [];
+  
   return matches.filter(match => 
-    match.homeTeam === teamName || match.awayTeam === teamName
+    (match.homeTeamId === teamId || match.homeTeam === teamName) || 
+    (match.awayTeamId === teamId || match.awayTeam === teamName)
   ).sort((a, b) => a.matchday - b.matchday);
 };
 
 // Get head-to-head matches between two teams
-export const getHeadToHeadMatches = (team1: string, team2: string, matches: Match[]): Match[] => {
+export const getHeadToHeadMatches = (team1Id: string, team2Id: string, matches: Match[]): Match[] => {
+  const team1Name = TEAMS.find(t => t.id === team1Id)?.name;
+  const team2Name = TEAMS.find(t => t.id === team2Id)?.name;
+  
+  if (!team1Name || !team2Name) return [];
+  
   return matches.filter(match => 
-    (match.homeTeam === team1 && match.awayTeam === team2) || 
-    (match.homeTeam === team2 && match.awayTeam === team1)
+    ((match.homeTeamId === team1Id || match.homeTeam === team1Name) && 
+     (match.awayTeamId === team2Id || match.awayTeam === team2Name)) || 
+    ((match.homeTeamId === team2Id || match.homeTeam === team2Name) && 
+     (match.awayTeamId === team1Id || match.awayTeam === team1Name))
   ).sort((a, b) => a.matchday - b.matchday);
 };
 
+// Get a team by ID
+export const getTeamById = (teamId: string): { id: string, name: string, logoUrl: string } | undefined => {
+  return TEAMS.find(team => team.id === teamId);
+};
+
 // Helper functions
-const createInitialTeamStats = (teamName: string): Team => ({
-  id: teamName.toLowerCase().replace(/\s+/g, '-'),
+const createInitialTeamStats = (teamId: string, teamName: string, logoUrl?: string): Team => ({
+  id: teamId,
   name: teamName,
+  logoUrl: logoUrl,
   played: 0,
   won: 0,
   drawn: 0,
