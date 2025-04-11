@@ -1,6 +1,6 @@
 
 import { Match } from "../types";
-import { AVAILABLE_SEASONS, teamNameToId } from "./constants";
+import { AVAILABLE_SEASONS, TEAMS, teamNameToId } from "./constants";
 
 // Function to fetch match data from a specific season or all seasons
 export const fetchMatchData = async (seasonId?: string): Promise<Match[]> => {
@@ -85,7 +85,8 @@ export const parseCsvToMatches = (csvText: string, url: string): Match[] => {
 
 // Get all matches for a specific team
 export const getTeamMatches = (teamId: string, matches: Match[]): Match[] => {
-  const teamName = import("./constants").then(module => module.TEAMS.find(t => t.id === teamId)?.name);
+  // Find team name from ID
+  const teamName = TEAMS.find(t => t.id === teamId)?.name;
   if (!teamName) return [];
   
   return matches.filter(match => 
@@ -95,16 +96,11 @@ export const getTeamMatches = (teamId: string, matches: Match[]): Match[] => {
 };
 
 // Get head-to-head matches between two teams
-export const getHeadToHeadMatches = (team1Id: string, team2Id: string, matches: Match[]): Match[] => {
-  const team1 = import("./teamService").then(module => module.getTeamById(team1Id));
-  const team2 = import("./teamService").then(module => module.getTeamById(team2Id));
-  
-  if (!team1 || !team2) return [];
+export const getHeadToHeadMatches = (team1Name: string, team2Name: string, matches: Match[]): Match[] => {
+  if (!team1Name || !team2Name) return [];
   
   return matches.filter(match => 
-    ((match.homeTeamId === team1Id || match.homeTeam === team1) && 
-     (match.awayTeamId === team2Id || match.awayTeam === team2)) || 
-    ((match.homeTeamId === team2Id || match.homeTeam === team2) && 
-     (match.awayTeamId === team1Id || match.awayTeam === team1))
+    ((match.homeTeam === team1Name && match.awayTeam === team2Name) || 
+     (match.homeTeam === team2Name && match.awayTeam === team1Name))
   ).sort((a, b) => a.matchday - b.matchday);
 };
